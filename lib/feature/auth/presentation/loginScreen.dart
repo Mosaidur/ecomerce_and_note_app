@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+
+import '../../notes/presentaiton/provider/note_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,14 +19,20 @@ class _LoginScreenState extends State<LoginScreen> {
   final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
   final passwordRegex = RegExp(r'^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{6,}$');
 
-  void _submit() {
+  Future<void> _submit() async {
     if (_formKey.currentState!.validate()) {
       FocusScope.of(context).unfocus();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login Successful!')),
-      );
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('email', _emailController.text);
+      await prefs.setString('password', _passwordController.text);
 
-      Navigator.pushNamed(context, '/home');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login Successful!')),
+        );
+        await context.read<NoteProvider>().loadNotes();
+        Navigator.pushReplacementNamed(context, '/home');
+      }
     }
   }
 
@@ -30,7 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : Colors.black;
-    final buttonColor = Colors.teal;
+    final buttonColor = Colors.blue;
 
     return Scaffold(
       appBar: AppBar(
@@ -51,7 +61,6 @@ class _LoginScreenState extends State<LoginScreen> {
           key: _formKey,
           child: Column(
             children: [
-              /// Email Field
               TextFormField(
                 controller: _emailController,
                 decoration: const InputDecoration(
@@ -66,10 +75,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   return null;
                 },
               ),
-
               const SizedBox(height: 20),
-
-              /// Password Field
               TextFormField(
                 controller: _passwordController,
                 obscureText: true,
@@ -86,10 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   return null;
                 },
               ),
-
               const SizedBox(height: 30),
-
-              /// Login Button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -109,5 +112,12 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 }

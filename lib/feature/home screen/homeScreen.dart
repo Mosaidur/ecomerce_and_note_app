@@ -5,6 +5,9 @@ import 'package:provider/provider.dart';
 import '../../shared/theme provider/themeProvider.dart';
 import '../ecom/presentation/provider/product_provider.dart';
 import '../ecom/presentation/screen/product_list_screen.dart';
+import '../notes/data/repository/note_repository_impl.dart';
+import '../notes/presentaiton/provider/note_provider.dart';
+import '../notes/presentaiton/screen/note_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -49,25 +52,50 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: Center(
-        child: InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => ChangeNotifierProvider(
-                  create: (_) => ProductProvider()..loadProducts(),
-                  child: const ProductListScreen(),
-                ),
+      body: Column(
+        children: [
+          Center(
+            child: InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ChangeNotifierProvider(
+                      create: (_) => ProductProvider()..loadProducts(),
+                      child: const ProductListScreen(),
+                    ),
+                  ),
+                );
+              },
+              child: const Text(
+                '🎉 Welcome to the Home Screen!\nTap here to see products',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
-            );
-          },
-          child: const Text(
-            '🎉 Welcome to the Home Screen!\nTap here to see products',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
           ),
-        ),
+          InkWell(
+            onTap: () async {
+              final prefs = await SharedPreferences.getInstance();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ChangeNotifierProvider(
+                    create: (_) => NoteProvider(repository: NoteRepositoryImpl(prefs))..loadNotes(),
+                    child: const NoteListScreen(),
+                  ),
+
+                ),
+              );
+            },
+            child: const Text(
+              '📝 Tap here to see notes',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+          ),
+
+        ],
       ),
     );
   }
